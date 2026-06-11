@@ -182,6 +182,28 @@
   .step p { font-size: 13.5px; color: var(--ink-soft); }
   .step p em { color: var(--pine); font-style: italic; }
 
+  /* ---- field note: agent callout ---- */
+  .fieldnote {
+    margin-top: 44px; background: var(--card); border: 1.5px dashed var(--sienna);
+    border-radius: 6px; padding: 22px 26px 20px; position: relative;
+    display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: start;
+    transform: rotate(-0.3deg);
+  }
+  .fieldnote .glyph {
+    font-family: var(--serif); font-size: 30px; line-height: 1; color: var(--sienna);
+    margin-top: 2px;
+  }
+  .fieldnote .fn-label {
+    font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--sienna); margin-bottom: 6px;
+  }
+  .fieldnote p { font-size: 14.5px; color: var(--ink-soft); max-width: 64ch; }
+  .fieldnote p strong { color: var(--ink); }
+  .fieldnote p em { color: var(--pine); }
+  @media (max-width: 760px) {
+    .fieldnote { grid-template-columns: 1fr; gap: 8px; padding: 18px; }
+  }
+
   /* ---- enrichment: legend swatches ---- */
   .layers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 32px; }
   .layer {
@@ -356,6 +378,14 @@
       <div class="step"><div class="marker">02</div><h3>Check</h3><p>Each new source passes quality gates before it's trusted: is the data real, complete, and correctly labeled?</p></div>
       <div class="step"><div class="marker">03</div><h3>Standardize</h3><p>Thousands of local formats become one consistent record: owner, address, size, value, taxes, and exact boundaries.</p></div>
       <div class="step"><div class="marker">04</div><h3>Enrich</h3><p>Federal datasets are layered on top, answering the question every buyer has: <em>"Could I actually build here?"</em></p></div>
+    </div>
+
+    <div class="fieldnote">
+      <div class="glyph" aria-hidden="true">✱</div>
+      <div>
+        <div class="fn-label">Field Note · The crew is AI</div>
+        <p><strong>Expanding to a new state starts with two words — "Add Iowa."</strong> From there, AI agents do the legwork a team of researchers used to: they fan out across the state, hunt down each county's data portal, decode its one-of-a-kind format, and wire it into the pipeline. Then the automated machinery takes over — checking, standardizing, and enriching <em>with no human in the loop</em>. It's how a small team covers a country with 3,000+ counties.</p>
+      </div>
     </div>
   </section>
 
