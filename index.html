@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Groundtruth — Every property in America, in one place</title>
+<meta name="description" content="Groundtruth aggregates America's scattered county land records into one clean, searchable service.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,50&family=Albert+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f3efe6;
+    --paper-deep: #ebe5d6;
+    --card: #faf8f2;
+    --ink: #1d2b22;
+    --ink-soft: #45544a;
+    --ink-faint: #7d8a7f;
+    --pine: #2c5f46;
+    --pine-deep: #1e4633;
+    --sienna: #c2521c;
+    --sienna-soft: #f3e0d2;
+    --contour: #d8d0bc;
+    --line: #ddd6c4;
+    --serif: "Fraunces", Georgia, serif;
+    --sans: "Albert Sans", "Helvetica Neue", sans-serif;
+    --mono: "IBM Plex Mono", monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  ::selection { background: var(--sienna); color: var(--paper); }
+
+  /* ---- grain + contour atmosphere ---- */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+  .contours {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  .contours svg { position: absolute; width: 1400px; height: auto; opacity: 0.55; }
+  .contours .c1 { top: -120px; right: -340px; }
+  .contours .c2 { bottom: -160px; left: -420px; transform: scaleX(-1); opacity: 0.35; }
+
+  .page { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 0 28px; }
+
+  /* ---- plat-stamp header ---- */
+  header.masthead { padding: 64px 0 24px; position: relative; }
+  .plat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-faint);
+    border-bottom: 1px solid var(--line); padding-bottom: 14px;
+  }
+  .plat-row .stamp {
+    border: 1.5px solid var(--sienna); color: var(--sienna);
+    padding: 3px 10px; border-radius: 3px; transform: rotate(-1.5deg);
+    font-weight: 600;
+  }
+  .wordmark {
+    font-family: var(--serif); font-weight: 800; font-size: 17px;
+    letter-spacing: 0.02em; color: var(--pine-deep); text-transform: none;
+  }
+  .wordmark::before { content: "◬ "; color: var(--sienna); }
+
+  h1 {
+    font-family: var(--serif); font-weight: 560; font-size: clamp(40px, 6.4vw, 64px);
+    line-height: 1.04; letter-spacing: -0.015em; margin: 56px 0 0;
+    max-width: 15ch;
+  }
+  h1 em {
+    font-style: italic; font-weight: 480; color: var(--pine);
+  }
+  .subhead {
+    font-size: 18.5px; color: var(--ink-soft); max-width: 56ch; margin: 26px 0 0;
+  }
+  .hero-grid { display: grid; grid-template-columns: 1fr 220px; gap: 32px; align-items: end; }
+  .hero-aside {
+    font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint);
+    line-height: 1.9; border-left: 1px solid var(--line); padding-left: 18px;
+    padding-bottom: 6px;
+  }
+  .hero-aside b { color: var(--pine); font-weight: 600; }
+
+  /* ---- load animation ---- */
+  .reveal { opacity: 0; transform: translateY(18px); animation: rise 0.9s cubic-bezier(0.22,1,0.36,1) forwards; }
+  .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.18s; }
+  .d3 { animation-delay: 0.32s; } .d4 { animation-delay: 0.46s; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  .scroll-reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1), transform 0.8s cubic-bezier(0.22,1,0.36,1); }
+  .scroll-reveal.in { opacity: 1; transform: none; }
+
+  /* ---- stat band: map legend ---- */
+  .stats {
+    margin: 64px 0 0; display: grid; grid-template-columns: repeat(4, 1fr);
+    border: 1.5px solid var(--ink); border-radius: 6px; background: var(--card);
+    box-shadow: 5px 5px 0 var(--paper-deep), 5px 5px 0 1.5px var(--line);
+    overflow: hidden;
+  }
+  .stat { padding: 22px 20px 18px; border-right: 1px dashed var(--line); }
+  .stat:last-child { border-right: none; }
+  .stat .num {
+    font-family: var(--serif); font-weight: 700; font-size: 36px;
+    color: var(--pine-deep); line-height: 1;
+  }
+  .stat .num sup { font-size: 18px; color: var(--sienna); }
+  .stat .label {
+    font-family: var(--mono); font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--ink-faint); margin-top: 10px; line-height: 1.5;
+  }
+
+  /* ---- sections ---- */
+  section { padding: 88px 0 0; position: relative; }
+  .kicker {
+    font-family: var(--mono); font-size: 11.5px; font-weight: 600;
+    letter-spacing: 0.22em; text-transform: uppercase; color: var(--sienna);
+    display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
+  }
+  .kicker::before { content: ""; width: 34px; height: 1.5px; background: var(--sienna); }
+  .kicker .sec-n { color: var(--ink-faint); font-weight: 400; }
+  h2 {
+    font-family: var(--serif); font-weight: 600; font-size: clamp(27px, 3.6vw, 36px);
+    line-height: 1.15; letter-spacing: -0.01em; max-width: 24ch; margin-bottom: 16px;
+  }
+  p.body { color: var(--ink-soft); font-size: 16.5px; max-width: 66ch; margin-bottom: 14px; }
+  p.body strong { color: var(--ink); font-weight: 600; }
+
+  /* ---- problem: scattered vs unified ---- */
+  .compare { display: grid; grid-template-columns: 1fr 64px 1fr; align-items: stretch; margin-top: 36px; }
+  .compare-card {
+    background: var(--card); border: 1.5px solid var(--ink); border-radius: 6px; padding: 22px;
+  }
+  .compare-card.before { transform: rotate(-0.6deg); border-style: dashed; border-color: #b08a72; }
+  .compare-card.after  { transform: rotate(0.4deg); box-shadow: 5px 5px 0 var(--paper-deep); }
+  .compare-card h3 {
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px;
+  }
+  .before h3 { color: #a3501f; }
+  .after h3 { color: var(--pine); }
+  .scatter { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip {
+    font-family: var(--mono); font-size: 11px; padding: 5px 10px; border-radius: 3px;
+    background: var(--sienna-soft); color: #8a4a22; border: 1px solid #e0c4ab;
+  }
+  .chip:nth-child(odd)  { transform: rotate(-1.6deg); }
+  .chip:nth-child(3n)   { transform: rotate(1.8deg); }
+  .arrow-col { display: flex; align-items: center; justify-content: center; }
+  .arrow-col svg { width: 40px; stroke: var(--sienna); }
+  .unified-row {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    padding: 8px 2px; border-bottom: 1px dotted var(--line); font-size: 13.5px;
+  }
+  .unified-row:last-child { border-bottom: none; }
+  .unified-row .k { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
+  .unified-row .v { font-weight: 600; }
+  .v.ok { color: var(--pine); } .v.warn { color: var(--sienna); }
+
+  /* ---- pipeline: survey markers ---- */
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 40px; position: relative; }
+  .steps::before {
+    content: ""; position: absolute; top: 17px; left: 8%; right: 8%;
+    border-top: 2px dashed var(--contour); z-index: 0;
+  }
+  .step { position: relative; z-index: 1; padding: 0 18px 0 0; }
+  .step .marker {
+    width: 36px; height: 36px; background: var(--pine); color: var(--paper);
+    font-family: var(--mono); font-weight: 600; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    clip-path: polygon(50% 0, 100% 28%, 100% 100%, 0 100%, 0 28%);
+    margin-bottom: 16px;
+  }
+  .step:last-child .marker { background: var(--sienna); }
+  .step h3 { font-family: var(--serif); font-size: 19px; font-weight: 650; margin-bottom: 6px; }
+  .step p { font-size: 13.5px; color: var(--ink-soft); }
+  .step p em { color: var(--pine); font-style: italic; }
+
+  /* ---- enrichment: legend swatches ---- */
+  .layers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 32px; }
+  .layer {
+    background: var(--card); border: 1px solid var(--line); border-radius: 6px;
+    padding: 16px 16px 14px; display: flex; gap: 13px; align-items: flex-start;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .layer:hover { transform: translateY(-3px); box-shadow: 4px 6px 0 var(--paper-deep); }
+  .layer .swatch { width: 22px; height: 22px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; border: 1px solid rgba(0,0,0,0.18); }
+  .sw-flood   { background: repeating-linear-gradient(45deg, #7da7c4, #7da7c4 3px, #b8d0e0 3px, #b8d0e0 6px); }
+  .sw-wetland { background: radial-gradient(circle at 30% 30%, #6b8f5e 2px, transparent 2.5px), radial-gradient(circle at 70% 70%, #6b8f5e 2px, transparent 2.5px), #c5d4b4; }
+  .sw-slope   { background: repeating-linear-gradient(-60deg, #b5907a, #b5907a 2px, #e0cdbf 2px, #e0cdbf 5px); }
+  .sw-soil    { background: repeating-radial-gradient(circle at 50% 120%, #8a6a4f, #8a6a4f 2px, #c9b39a 2px, #c9b39a 6px); }
+  .sw-hazard  { background: repeating-linear-gradient(90deg, #c2521c, #c2521c 4px, #ecd5a8 4px, #ecd5a8 8px); }
+  .sw-census  { background: conic-gradient(#41705b 0 25%, #8fb3a0 0 50%, #41705b 0 75%, #8fb3a0 0); }
+  .layer b { display: block; font-size: 14.5px; font-weight: 600; }
+  .layer span { font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ---- audience ---- */
+  .audience { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 32px; }
+  .aud {
+    border-top: 3px solid var(--pine); background: var(--card);
+    border-left: 1px solid var(--line); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    border-radius: 0 0 6px 6px; padding: 20px 18px;
+  }
+  .aud:nth-child(2) { border-top-color: var(--sienna); }
+  .aud:nth-child(3) { border-top-color: #7da7c4; }
+  .aud h3 { font-family: var(--serif); font-size: 19px; font-weight: 650; margin-bottom: 8px; }
+  .aud p { font-size: 13.5px; color: var(--ink-soft); }
+
+  /* ---- business: the deed ---- */
+  .deed {
+    margin-top: 36px; background: var(--card); border: 1.5px solid var(--ink); border-radius: 6px;
+    padding: 36px 40px; position: relative;
+    box-shadow: 6px 6px 0 var(--paper-deep), 6px 6px 0 1.5px var(--line);
+  }
+  .deed::before {
+    content: "EST. 2026 · OPEN DATA"; position: absolute; top: 18px; right: 20px;
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.18em; color: var(--ink-faint);
+    border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; transform: rotate(2deg);
+  }
+  .deed .thesis {
+    font-family: var(--serif); font-style: italic; font-weight: 520;
+    font-size: clamp(21px, 2.8vw, 27px); line-height: 1.3; color: var(--pine-deep);
+    max-width: 24ch; margin-bottom: 18px;
+  }
+  .deed p { font-size: 15px; color: var(--ink-soft); max-width: 70ch; }
+  .deed p strong { color: var(--ink); }
+  .tiers { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  .tier {
+    font-family: var(--mono); font-size: 12px; padding: 7px 14px;
+    border: 1px solid var(--pine); color: var(--pine); border-radius: 3px;
+  }
+  .tier b { font-weight: 600; }
+  .tier.hot { background: var(--pine); color: var(--paper); }
+
+  footer {
+    margin-top: 96px; border-top: 1.5px solid var(--ink); padding: 22px 0 56px;
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  footer b { color: var(--pine); font-weight: 600; }
+
+  @media (max-width: 760px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-aside { border-left: none; border-top: 1px solid var(--line); padding: 16px 0 0; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(2) { border-right: none; }
+    .stat:nth-child(-n+2) { border-bottom: 1px dashed var(--line); }
+    .steps { grid-template-columns: 1fr 1fr; gap: 28px 16px; }
+    .steps::before { display: none; }
+    .layers, .audience { grid-template-columns: 1fr; }
+    .compare { grid-template-columns: 1fr; gap: 4px; }
+    .arrow-col { transform: rotate(90deg); padding: 10px 0; }
+    .deed { padding: 28px 22px; }
+    .deed::before { display: none; }
+  }
+  @media print {
+    .contours, body::before { display: none; }
+    section { padding-top: 44px; break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="contours" aria-hidden="true">
+  <svg class="c1" viewBox="0 0 800 600" fill="none" stroke="#cdc4ab" stroke-width="1.2">
+    <path d="M120 80 C 260 20, 430 60, 520 150 S 700 320, 640 440 S 420 560, 300 500 S 90 380, 110 260 S 60 130, 120 80 Z"/>
+    <path d="M170 120 C 290 70, 420 100, 495 180 S 640 320, 590 415 S 420 510, 320 460 S 150 370, 165 270 S 120 165, 170 120 Z"/>
+    <path d="M220 160 C 315 120, 415 145, 472 210 S 580 320, 540 390 S 415 460, 338 422 S 205 355, 218 280 S 178 200, 220 160 Z"/>
+    <path d="M272 205 C 340 175, 408 192, 450 240 S 522 320, 492 368 S 408 412, 352 385 S 258 340, 268 288 S 240 232, 272 205 Z"/>
+    <path d="M320 248 C 362 230, 402 240, 428 270 S 468 322, 448 352 S 398 378, 364 360 S 310 332, 316 300 S 298 262, 320 248 Z"/>
+  </svg>
+  <svg class="c2" viewBox="0 0 800 600" fill="none" stroke="#cdc4ab" stroke-width="1.2">
+    <path d="M120 80 C 260 20, 430 60, 520 150 S 700 320, 640 440 S 420 560, 300 500 S 90 380, 110 260 S 60 130, 120 80 Z"/>
+    <path d="M170 120 C 290 70, 420 100, 495 180 S 640 320, 590 415 S 420 510, 320 460 S 150 370, 165 270 S 120 165, 170 120 Z"/>
+    <path d="M220 160 C 315 120, 415 145, 472 210 S 580 320, 540 390 S 415 460, 338 422 S 205 355, 218 280 S 178 200, 220 160 Z"/>
+    <path d="M272 205 C 340 175, 408 192, 450 240 S 522 320, 492 368 S 408 412, 352 385 S 258 340, 268 288 S 240 232, 272 205 Z"/>
+  </svg>
+</div>
+
+<div class="page">
+
+  <header class="masthead">
+    <div class="plat-row reveal d1">
+      <span class="wordmark">Groundtruth</span>
+      <span>Parcel record · Plat № 001</span>
+      <span class="stamp">One-Pager</span>
+    </div>
+
+    <div class="hero-grid">
+      <div>
+        <h1 class="reveal d2">Every property in America, in <em>one clean, searchable place.</em></h1>
+        <p class="subhead reveal d3">Groundtruth gathers the scattered public records behind every piece of land in the U.S. — who owns it, what it's worth, and whether you could actually build on it — and turns them into one simple service.</p>
+      </div>
+      <div class="hero-aside reveal d4">
+        LAT 39.8283° N<br>
+        LON 98.5795° W<br>
+        DATUM <b>PUBLIC RECORD</b><br>
+        SCALE <b>1 : NATIONWIDE</b><br>
+        SURVEYED <b>CONTINUOUSLY</b>
+      </div>
+    </div>
+
+    <div class="stats reveal d4">
+      <div class="stat"><div class="num">26M<sup>+</sup></div><div class="label">Property records collected</div></div>
+      <div class="stat"><div class="num">21</div><div class="label">States in the pipeline</div></div>
+      <div class="stat"><div class="num">85</div><div class="label">Government data feeds connected</div></div>
+      <div class="stat"><div class="num">6</div><div class="label">Layers of added insight per property</div></div>
+    </div>
+  </header>
+
+  <section class="scroll-reveal">
+    <div class="kicker"><span>The Problem</span><span class="sec-n">— 01</span></div>
+    <h2>America's land records are public — but practically unusable.</h2>
+    <p class="body">Every piece of land in the U.S. belongs to a county, and each of the <strong>3,000+ counties</strong> keeps its own records, on its own website, in its own format. The information is free and public, but comparing properties means visiting county sites one by one. The companies that have already stitched it together sell it through <strong>expensive enterprise contracts</strong> — out of reach for individual investors, small firms, and new software tools.</p>
+
+    <div class="compare">
+      <div class="compare-card before">
+        <h3>Today · 3,000+ counties, 3,000+ formats</h3>
+        <div class="scatter">
+          <span class="chip">Travis County PDF portal</span>
+          <span class="chip">Wake County GIS map</span>
+          <span class="chip">Suffolk Co. assessor site</span>
+          <span class="chip">Ohio spreadsheet export</span>
+          <span class="chip">"OWNR_NM_1" field</span>
+          <span class="chip">acres vs. sq. ft.</span>
+          <span class="chip">…2,994 more</span>
+        </div>
+      </div>
+      <div class="arrow-col" aria-hidden="true">
+        <svg viewBox="0 0 40 24" fill="none" stroke-width="2"><path d="M2 12 H 34 M26 4 l 9 8 -9 8" stroke="currentColor" style="color: var(--sienna)"/></svg>
+      </div>
+      <div class="compare-card after">
+        <h3>Groundtruth · one record, same everywhere</h3>
+        <div class="unified-row"><span class="k">Owner</span><span class="v">Jane Alvarez</span></div>
+        <div class="unified-row"><span class="k">Size</span><span class="v">12.4 acres</span></div>
+        <div class="unified-row"><span class="k">Assessed value</span><span class="v">$84,000</span></div>
+        <div class="unified-row"><span class="k">Flood risk</span><span class="v ok">Outside flood zone</span></div>
+        <div class="unified-row"><span class="k">Wetlands</span><span class="v warn">Partial overlap</span></div>
+        <div class="unified-row"><span class="k">Area income</span><span class="v">$71,200 median</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="scroll-reveal">
+    <div class="kicker"><span>How It Works</span><span class="sec-n">— 02</span></div>
+    <h2>An automated pipeline turns raw county data into answers.</h2>
+    <div class="steps">
+      <div class="step"><div class="marker">01</div><h3>Collect</h3><p>Software connects directly to counties' public mapping systems and pulls every property record — no manual data entry.</p></div>
+      <div class="step"><div class="marker">02</div><h3>Check</h3><p>Each new source passes quality gates before it's trusted: is the data real, complete, and correctly labeled?</p></div>
+      <div class="step"><div class="marker">03</div><h3>Standardize</h3><p>Thousands of local formats become one consistent record: owner, address, size, value, taxes, and exact boundaries.</p></div>
+      <div class="step"><div class="marker">04</div><h3>Enrich</h3><p>Federal datasets are layered on top, answering the question every buyer has: <em>"Could I actually build here?"</em></p></div>
+    </div>
+  </section>
+
+  <section class="scroll-reveal">
+    <div class="kicker"><span>The Enrichment Layers</span><span class="sec-n">— 03</span></div>
+    <h2>Insight no single county record contains.</h2>
+    <p class="body">Groundtruth cross-references each property against trusted federal sources — FEMA, the U.S. Census Bureau, USGS, and the USDA — so a single record tells you not just <strong>what a property is</strong>, but <strong>what it's like to own it</strong>.</p>
+    <div class="layers">
+      <div class="layer"><div class="swatch sw-flood"></div><div><b>Flood risk</b><span>FEMA flood zone maps</span></div></div>
+      <div class="layer"><div class="swatch sw-wetland"></div><div><b>Wetlands</b><span>National Wetlands Inventory</span></div></div>
+      <div class="layer"><div class="swatch sw-slope"></div><div><b>Terrain &amp; slope</b><span>USGS elevation data</span></div></div>
+      <div class="layer"><div class="swatch sw-soil"></div><div><b>Soil quality</b><span>USDA soil surveys</span></div></div>
+      <div class="layer"><div class="swatch sw-hazard"></div><div><b>Natural hazards</b><span>Wildfire · hurricane · tornado</span></div></div>
+      <div class="layer"><div class="swatch sw-census"></div><div><b>Neighborhood</b><span>Census income &amp; population</span></div></div>
+    </div>
+  </section>
+
+  <section class="scroll-reveal">
+    <div class="kicker"><span>Who It's For</span><span class="sec-n">— 04</span></div>
+    <h2>Two doors into the same data.</h2>
+    <p class="body">Anyone can use the free <strong>map explorer</strong> — click any parcel in a covered county and instantly see its full profile. Professionals and software builders plug into the <strong>data service (API)</strong>, which lets their own tools ask questions like <em>"find every parcel over 5 acres, outside a flood zone, assessed under $50,000."</em></p>
+    <div class="audience">
+      <div class="aud"><h3>Land investors</h3><p>Screen thousands of properties for deals and spot red flags — flood zones, wetlands, steep terrain — before ever visiting a site.</p></div>
+      <div class="aud"><h3>Developers &amp; builders</h3><p>Compare candidate sites on buildability, ownership, and value in minutes instead of weeks of county-by-county research.</p></div>
+      <div class="aud"><h3>Software &amp; AI tools</h3><p>Built from day one so that apps — and AI assistants — can query land data directly, something legacy providers weren't designed for.</p></div>
+    </div>
+  </section>
+
+  <section class="scroll-reveal">
+    <div class="kicker"><span>The Business</span><span class="sec-n">— 05</span></div>
+    <h2>Free to explore. Paid to build on.</h2>
+    <div class="deed">
+      <p class="thesis">"The map is the storefront. The data service is the product."</p>
+      <p>Browsing the map costs nothing and requires no signup — that's how people discover the data is good. Heavy, automated use is what costs money. The incumbents (Regrid, ATTOM, CoreLogic) sell roughly the same underlying public data through opaque enterprise contracts; Groundtruth's bet is that <strong>transparent, self-serve pricing</strong> — and being the easiest source for AI tools to use — wins the next generation of customers.</p>
+      <div class="tiers">
+        <span class="tier">Explorer · <b>Free, no signup</b></span>
+        <span class="tier">Starter · <b>$0/mo</b></span>
+        <span class="tier hot">Builder · <b>$49/mo</b></span>
+        <span class="tier hot">Growth · <b>$199/mo</b></span>
+        <span class="tier">Enterprise · <b>Custom</b></span>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span><b>◬ Groundtruth</b> · groundtruth-data.fly.dev</span>
+    <span>Built on public data · County GIS · FEMA · U.S. Census · USGS · USDA</span>
+  </footer>
+
+</div>
+
+<script>
+  const obs = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); }
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.scroll-reveal').forEach((el) => obs.observe(el));
+</script>
+</body>
+</html>
